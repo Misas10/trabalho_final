@@ -1,6 +1,6 @@
-# Trabalho Final - PI
+## Trabalho Final - PI
 
-Trabalho foi realizado na disciplina de Programação I, feito apartir do ISTEC.
+ Trabalho foi realizado na disciplina de Programação I, feito apartir do ISTEC.
 
 Este trabalho tem como objetivo criar um programa que permite a gestão de registo com operações de: Escrita, Pesquisa, Listagem, Remoção e Leitura. 
 Apartir de um ficheiro binário.

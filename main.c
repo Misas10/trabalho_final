@@ -1,10 +1,18 @@
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-// numeros de valores d
+// numeros de valores do array
 #define LIVRO_ARR_LEN 5
+
+// nome do ficheiro
+const char *NOME_FIC = "livros.bin";
+
+// pointer do ficheiro
+FILE *file;
+
+typedef struct Livro Livro;
+int numLivros = 2;
 
 struct Livro {
   int id;
@@ -12,41 +20,36 @@ struct Livro {
   char autor[50];
   char descricao[200];
   char data_pub[10];
-
 } livro;
 
-int numLivros = 2;
-
-struct Livro livros[LIVRO_ARR_LEN];
-
-// A funcionar
+// FEITO 😄
 void menu();
 
-// A ser feito (Cebola)
+// FEITO 😄 (Cebola)
 void pesquisar();
 
-// A funcionar
+// A funcionar (Evandro)
 void listar();
 
-// A funciominar (Cebola)
+// A Funcionar (Cebola)
 void inserir();
-void eliminar();
+
+// A ser feito (Cebola)
+int eliminar();
+
+// FEITO 😄
 void atualizar();
+
+void mostrarLivro(struct Livro str_livro);
 
 int main() {
   setlocale(LC_ALL, "");
 
-  livros[0].id = 0;
-  strcpy(livros[0].titlo, "O youtuber");
-  strcpy(livros[0].autor, "Evando Vieira");
-  strcpy(livros[0].descricao, "alguma descrição");
-  strcpy(livros[0].data_pub, "20/22");
+  if ((file = fopen(NOME_FIC, "ab+")) == NULL) {
+    printf("Não foi possível abrir o ficheiro");
+  }
 
-  livros[1].id = 1;
-  strcpy(livros[1].titlo, "O gamer");
-  strcpy(livros[1].autor, "Cebola");
-  strcpy(livros[1].descricao, "alguma descrição");
-  strcpy(livros[1].data_pub, "20/22");
+  fclose(file);
   menu();
 
   return 0;
@@ -55,7 +58,7 @@ int main() {
 void menu() {
 
   do {
-    char op = 0;
+    int op = 0;
 
     printf("\n[1] - Pesquisar livros \n");
     printf("[2] - Listar livros \n");
@@ -71,21 +74,26 @@ void menu() {
     case 1:
       pesquisar();
       break;
+
     case 2:
       listar();
       break;
+
     case 3:
       inserir();
       break;
+
     case 4:
-      // atualizar();
+      atualizar();
       break;
+
     case 5:
       eliminar();
       break;
+
     case 6:
       printf("\nA sair... \n");
-      exit(1);
+      exit(2);
 
     default:
       printf("\nOpção inválida!\n");
@@ -101,91 +109,205 @@ void menu() {
 }
 
 void pesquisar() {
-  int i;
   int idNum;
   int check = 0;
+
+  file = fopen(NOME_FIC, "rb");
+  if (file == NULL)
+    printf("Erro ao ler o ficheiro");
 
   printf("\nIntroduza id do livro: ");
   scanf("%d", &idNum);
 
-  for (i = 0; i < numLivros; i++) {
-    if (idNum == livros[i].id) {
+  while (fread(&livro, sizeof(Livro), 1, file)) {
+    if (idNum == livro.id) {
       check = 1;
       break;
     }
   }
+  printf("\n");
 
-  if (check) {
-    printf("\nTítulo: %s", livros[idNum].titlo);
-    printf("\nAutor: %s", livros[idNum].autor);
-    printf("\nDescrição: %s", livros[idNum].descricao);
-    printf("\nData de publicação: %s\n", livros[idNum].data_pub);
-  } else
-    printf("\nErro: O id não existe\n");
+  if (check)
+    mostrarLivro(livro);
+  else
+    printf("ERRO: O id não existe\n");
 
-  menu();
+  fclose(file);
 }
 
 void inserir() {
+
+  file = fopen(NOME_FIC, "ab+");
   char c;
+  int id;
+
+  if (file == NULL)
+    printf("Não foi possível abrir o ficheiro");
 
   printf("Introduza id do livro: ");
 
   // Mais seguro que scanf
-  fscanf(stdin, "%i", &livros[numLivros + 1].id);
+  fscanf(stdin, "%i", &id);
+
+  while (fread(&livro, sizeof(Livro), 1, file))
+    if (livro.id == id) {
+      printf("ERRO: Este id já existe. \n\n");
+      menu();
+    }
+
+  livro.id = id;
 
   // Come o '\n' deixado pelo fscanf acima
   // Caso contrário é lido no 'fgets' abaixo e não o executa
   scanf("%c", &c);
 
   printf("Introduza o titulo do livro: ");
-  fgets(livros[numLivros + 1].titlo, 50, stdin);
+  fgets(livro.titlo, 50, stdin);
 
   printf("Introduza o nome do autor: ");
-  fgets(livros[numLivros + 1].autor, 50, stdin);
+  fgets(livro.autor, 50, stdin);
 
   printf("Introduza uma descrição do livro: ");
-  fgets(livros[numLivros + 1].descricao, 200, stdin);
+  fgets(livro.descricao, 200, stdin);
 
   printf("Introduza a data de publicação: ");
-  fgets(livros[numLivros + 1].data_pub, 10, stdin);
+  fgets(livro.data_pub, 10, stdin);
 
-  numLivros++;
-
-  // menu();
+  // Esccreve no ficheiro
+  fwrite(&livro, sizeof(Livro), 1, file);
+  fclose(file);
 }
 
 void listar() {
-  int i;
+  file = fopen(NOME_FIC, "rb");
+
   printf("Lista de todos os livros:\n\n");
-  for (i = 0; i <= numLivros; i++) {
-    printf("%d --- %s\n", livros[i].id, livros[i].titlo);
-    printf("       %s\n", livros[i].autor);
-    printf("       %s\n", livros[i].descricao);
-    printf("       %s\n", livros[i].data_pub);
-    printf("\n");
-  }
-  // menu();
+
+  while (fread(&livro, sizeof(Livro), 1, file))
+    mostrarLivro(livro);
+
+  fclose(file);
 }
 
-void eliminar() {
-  int i;
-  int idNum;
-  int check;
-  int warn;
+int eliminar() {
+  FILE *file_temp;
+  int id;
+  int found = 0;
+  char choice, c;
 
-  for (i = 0; i < numLivros; i++) {
-    printf("\nId: %d", livros[i].id);
-    printf("\nTítulo: %s\n", livros[i].titlo);
+  if ((file = fopen(NOME_FIC, "rb")) == NULL) {
+    printf("\nErro: Não existem registos no aguardados\n");
+    return 0;
   }
 
-  // printf("Introduza");
-  printf("\n");
-  // menu();
+  if ((file_temp = fopen("temp.bin", "wb")) == NULL) {
+    printf("\nErro ao abrir o ficheiro");
+    return 1;
+  }
+
+  printf("\nIntroduza o id do livro que deseja eliminar: ");
+  scanf("%d", &id);
+
+  while (fread(&livro, sizeof(Livro), 1, file)) {
+
+    if (id == livro.id) {
+
+      mostrarLivro(livro);
+
+      printf("\nDeseja eliminar este livro? (S/n): ");
+      // come o '\n'
+      scanf("%c", &c);
+
+      choice = getchar();
+
+      if (choice == 'S' || choice == 's') {
+        printf("\nRegisto eliminado com sucesso! \n");
+        found = 1;
+      }
+      else
+          found = 2;
+
+    } else
+      fwrite(&livro, sizeof(Livro), 1, file_temp);
+  }
+
+  if (!found){
+      printf("Não foi possível encontrar este id: %i\n", id);
+  }
+
+  if(found == 2) {
+      printf("Id %i não foi eliminado\n", id);
+      remove("temp.bin");
+      return 2;
+  }
+
+  fclose(file);
+  fclose(file_temp);
+
+  remove(NOME_FIC);
+  rename("temp.bin", NOME_FIC);
 }
 
 void atualizar() {
-  int i;
-  printf("Qual é o livro que quer atualizar?\n");
-  scanf("%d", &i);
+  int id;
+  int existe = 0;
+  char resp, c;
+  // struct Livro liv;
+
+  file = fopen(NOME_FIC, "rb+");
+
+  printf("Qual é o id do livro que deseja atualizar?\n");
+  scanf("%d", &id);
+
+  while (fread(&livro, sizeof(Livro), 1, file)) {
+
+    if (livro.id == id) {
+      existe = 1;
+
+      // Come o '\n'
+      // scanf("%c", &c);
+
+      printf("Digite o novo id: ");
+      fscanf(stdin, "%i", &livro.id);
+
+      // Come o '\n'
+      scanf("%c", &c);
+
+      printf("Introduza o novo titulo do livro: ");
+      fgets(livro.titlo, 50, stdin);
+
+      printf("Introduza o novo nome do autor: ");
+      fgets(livro.autor, 50, stdin);
+
+      printf("Introduza uma nova descrição do livro: ");
+      fgets(livro.descricao, 200, stdin);
+
+      printf("Introduza a nova data de publicação: ");
+      fgets(livro.data_pub, 10, stdin);
+
+      // Esccreve no ficheiro
+      fwrite(&livro, sizeof(Livro), 1, file);
+      break;
+    } else
+      existe = 0;
+  }
+
+  if (existe)
+    printf("\nLivro alterado com sucesso! \n");
+  else
+    printf("\nERRO: este id não existe\n");
+
+  fclose(file);
+
+  while ((getchar()) != '\n')
+    ;
+}
+
+void mostrarLivro(struct Livro str_livro) {
+  printf("ID: %i \n", str_livro.id);
+  printf("AUTOR: %s", str_livro.autor);
+  printf("TÍTULO: %s", str_livro.titlo);
+  printf("DESCRIÇÃO: %s", str_livro.descricao);
+  printf("DATA DE PUBLICAÇÃO: %s", str_livro.data_pub);
+  printf("\n");
 }
