@@ -223,22 +223,21 @@ int eliminar() {
       if (choice == 'S' || choice == 's') {
         printf("\nRegisto eliminado com sucesso! \n");
         found = 1;
-      }
-      else
-          found = 2;
+      } else
+        found = 2;
 
     } else
       fwrite(&livro, sizeof(Livro), 1, file_temp);
   }
 
-  if (!found){
-      printf("Não foi possível encontrar este id: %i\n", id);
+  if (!found) {
+    printf("Não foi possível encontrar este id: %i\n", id);
   }
 
-  if(found == 2) {
-      printf("Id %i não foi eliminado\n", id);
-      remove("temp.bin");
-      return 2;
+  if (found == 2) {
+    printf("Id %i não foi eliminado\n", id);
+    remove("temp.bin");
+    return 2;
   }
 
   fclose(file);
@@ -285,6 +284,8 @@ void atualizar() {
       printf("Introduza a nova data de publicação: ");
       fgets(livro.data_pub, 10, stdin);
 
+      fseek(file, -sizeof(Livro), 1);
+
       // Esccreve no ficheiro
       fwrite(&livro, sizeof(Livro), 1, file);
       break;
@@ -298,9 +299,6 @@ void atualizar() {
     printf("\nERRO: este id não existe\n");
 
   fclose(file);
-
-  while ((getchar()) != '\n')
-    ;
 }
 
 void mostrarLivro(struct Livro str_livro) {
