@@ -3,9 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// numeros de valores do array
-#define LIVRO_ARR_LEN 5
-
 // nome do ficheiro
 const char *NOME_FIC = "livros.bin";
 
