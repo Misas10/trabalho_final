@@ -2,6 +2,7 @@
 // algumas operações realizadas no ficheiro principal main.c
 // e que no entanto, não realizam leitura ou escrita na base de dados
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,4 +53,21 @@ void limpar() {
   int sys = system("cls");
   if (sys != 0)
     system("clear");
+}
+
+void atualizar_valor(char *target, int size) {
+  char str[size];
+
+  fgets(str, size, stdin);
+  char *c = str;
+
+  // retira todos os caracteres em branco
+  while (isspace(*c)) {
+    c++;
+  }
+
+  // atualiza o valor novo se o utilizador digitar algo
+  // caso contrário não
+  if (strcmp(c, "") != 0)
+    strcpy(target, c);
 }

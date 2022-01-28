@@ -1,24 +1,14 @@
-#include <ctype.h>
+// Ficheiro principal
 #include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
+
+// custom
+#include "extra_functions.c"
 
 // nome do ficheiro
 const char *NOME_FIC = "livros.bin";
 
 // pointer do ficheiro
 FILE *file;
-
-typedef struct Livro Livro;
-int numLivros = 2;
-
-struct Livro {
-  int id;
-  char titlo[50];
-  char autor[50];
-  char descricao[200];
-  char data_pub[10];
-} livro;
 
 // FEITO 😄
 void menu();
@@ -38,9 +28,6 @@ int eliminar();
 // FEITO 😄
 int atualizar();
 
-void mostrarLivro(struct Livro str_livro);
-int validar_id(char *str);
-
 int main() {
   setlocale(LC_ALL, "");
 
@@ -54,10 +41,13 @@ int main() {
   return 0;
 }
 
+//
 void menu() {
 
   do {
     int op = 0;
+
+    printf("\n\t MENU\n");
 
     printf("\n[1] - Pesquisar livros \n");
     printf("[2] - Listar livros \n");
@@ -107,7 +97,12 @@ void menu() {
   } while (1);
 }
 
+//
 int pesquisar() {
+
+  limpar();
+  printf("\t PESQUISAR\n");
+
   int idNum;
   int check = 0;
 
@@ -117,8 +112,7 @@ int pesquisar() {
     return 1;
   }
 
-  printf("\nIntroduza id do livro: ");
-  scanf("%d", &idNum);
+  idNum = validar_id("\nIntroduza o id válido do livro: ");
 
   while (fread(&livro, sizeof(Livro), 1, file)) {
     if (idNum == livro.id) {
@@ -128,16 +122,21 @@ int pesquisar() {
   }
   printf("\n");
 
-  if (check)
-    mostrarLivro(livro);
-  else
+  if (check) {
+    printf("\n#############################################\n");
+    mostrar_livro(livro);
+  } else
     printf("ERRO: O id não existe\n");
 
   fclose(file);
   return 0;
 }
 
+//
 int inserir() {
+
+  limpar();
+  printf("\t INSERIR\n");
 
   file = fopen(NOME_FIC, "ab+");
   char c;
@@ -148,8 +147,7 @@ int inserir() {
     return 0;
   }
 
-  // Mais seguro que scanf
-  id = validar_id("Introduza id do livro: ");
+  id = validar_id("\nIntroduza um id válido do livro: ");
 
   while (fread(&livro, sizeof(Livro), 1, file))
     if (livro.id == id) {
@@ -175,10 +173,16 @@ int inserir() {
   fwrite(&livro, sizeof(Livro), 1, file);
   fclose(file);
 
+  printf("\n\nLivro inserido.\n");
+
   return 0;
 }
 
+//
 int listar() {
+
+  limpar();
+  printf("\t LISTAR\n");
 
   if ((file = fopen(NOME_FIC, "rb")) == NULL) {
     puts("ERRO: Não é possível ler o ficheiro\n");
@@ -202,16 +206,22 @@ int listar() {
   }
 
   printf("\nLista de todos os livros:\n\n");
+  printf("\n#############################################\n");
 
   while (fread(&livro, sizeof(Livro), 1, file)) {
-    mostrarLivro(livro);
+    mostrar_livro(livro);
   }
 
   fclose(file);
   return 0;
 }
 
+//
 int eliminar() {
+
+  limpar();
+  printf("\t ELIMINAR\n");
+
   FILE *file_temp;
   int id;
   int found = 0;
@@ -228,25 +238,19 @@ int eliminar() {
     return 1;
   }
 
-  id = validar_id("\nIntroduza um id válido do livro que deseja eliminar: ");
+  id = validar_id("\n\nIntroduza um id válido do livro que deseja eliminar: ");
 
   while (fread(&livro, sizeof(Livro), 1, file)) {
 
     if (id == livro.id) {
 
-      mostrarLivro(livro);
+      printf("\n#############################################");
+      mostrar_livro(livro);
 
-      printf("\nDeseja eliminar este livro? (S/n): ");
-      // come o '\n'
-      scanf("%c", &c);
+      found = confirmar_escolha("\nDeseja eliminar este livro? (S/n): ");
 
-      choice = getchar();
-
-      if (choice == 'S' || choice == 's') {
-        printf("\nRegisto eliminado com sucesso! \n");
-        found = 1;
-      } else
-        found = 2;
+      if (found == 1)
+        printf("\nREGISTO ELIMADO! \n");
 
     } else
       fwrite(&livro, sizeof(Livro), 1, file_temp);
@@ -257,7 +261,7 @@ int eliminar() {
   }
 
   if (found == 2) {
-    printf("Id %i não foi eliminado\n", id);
+    printf("\nO livro NÃO FOI ELIMINADO.\n");
     remove("temp.bin");
     return 2;
   }
@@ -271,9 +275,14 @@ int eliminar() {
   return 0;
 }
 
+//
 int atualizar() {
+
+  limpar();
+  printf("\t ATUALIZAR\n");
+
   int id;
-  int existe = 0;
+  int found = 0;
   char resp, c;
 
   file = fopen(NOME_FIC, "rb+");
@@ -282,67 +291,51 @@ int atualizar() {
     return 0;
   }
 
-  printf("Qual é o id do livro que deseja atualizar?\n");
-  scanf("%d", &id);
+  id = validar_id("\nQual é o id do livro que deseja atualizar?\n");
 
   while (fread(&livro, sizeof(Livro), 1, file)) {
 
     if (livro.id == id) {
-      existe = 1;
 
-      id = validar_id("Digite um novo id válido: ");
+      printf("\n#############################################\n");
+      mostrar_livro(livro);
 
-      printf("Introduza o novo titulo do livro: ");
-      fgets(livro.titlo, 50, stdin);
+      if (confirmar_escolha("\nDeseja atualizar este livro? (S/n): ") == 1) {
+        found = 1;
 
-      printf("Introduza o novo nome do autor: ");
-      fgets(livro.autor, 50, stdin);
+        id = validar_id("\nDigite um novo id válido: ");
+        livro.id = id;
 
-      printf("Introduza uma nova descrição do livro: ");
-      fgets(livro.descricao, 200, stdin);
+        printf("\n\nPS: Caso NÃO queira mudar um dos campos, deixe-o vazio, ou "
+               "seja clique apenas no 'Enter'\n\n");
 
-      printf("Introduza a nova data de publicação: ");
-      fgets(livro.data_pub, 10, stdin);
+        printf("Introduza o novo titulo do livro: ");
+        atualizar_valor(livro.titlo, 50);
 
-      fseek(file, -sizeof(Livro), 1);
+        printf("Introduza o novo nome do autor: ");
+        atualizar_valor(livro.autor, 50);
 
-      // Esccreve no ficheiro
-      fwrite(&livro, sizeof(Livro), 1, file);
-      break;
-    } else
-      existe = 0;
+        printf("Introduza uma nova descrição do livro: ");
+        atualizar_valor(livro.descricao, 200);
+
+        printf("Introduza a nova data de publicação: ");
+        atualizar_valor(livro.data_pub, 10);
+
+        fseek(file, -sizeof(Livro), 1);
+
+        // Esccreve no ficheiro
+        fwrite(&livro, sizeof(Livro), 1, file);
+        break;
+      }
+    }
   }
 
-  if (existe)
-    printf("\nLivro alterado com sucesso! \n");
+  if (found)
+    printf("\nLIVRO ALTERADO COM SUCESSO! \n");
+
   else
     printf("\nERRO: este id não existe\n");
 
   fclose(file);
-}
-
-void mostrarLivro(struct Livro str_livro) {
-  printf("\n");
-  printf("ID: %i \n", str_livro.id);
-  printf("AUTOR: %s", str_livro.autor);
-  printf("TÍTULO: %s", str_livro.titlo);
-  printf("DESCRIÇÃO: %s", str_livro.descricao);
-  printf("DATA DE PUBLICAÇÃO: %s", str_livro.data_pub);
-  printf("\n#############################################");
-  printf("\n");
-}
-
-int validar_id(char *str) {
-  char *p, s[100];
-  long n;
-
-  while (fgets(s, sizeof(s), stdin)) {
-    n = strtol(s, &p, 10);
-    if (p == s || *p != '\n') {
-      puts(str);
-    } else
-      break;
-  }
-
-  return (int)n;
+  return 0;
 }
